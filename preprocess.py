@@ -46,3 +46,31 @@ def process_data(filename=None, training=True):
         new_dicts.extend(dicts)
         dicts = new_dicts
     return dicts
+
+
+def group_by_visit_number(filename=None, train=True):
+    """ data would be transformed to format like
+     (trip_type, (visit_number, weekday), [(upc, count, desc, fine_line)]) """
+
+    if filename is None:
+        raise ValueError("Filename should not be none")
+
+    aggregrated_data = {}
+    with open(filename, 'r') as f:
+        reader = csv.reader(f, delimiter=',', quotechar='"')
+        reader.next()
+        for row in reader:
+            data = None
+            if train is True:
+                data = (row[0], (row[1], row[2]),
+                        [(row[3], row[4], row[5], row[6])])
+            else:
+                data = (None, (row[0], row[1]),
+                        [(row[2], row[3], row[4], row[5])])
+
+            if data[1] in aggregrated_data:
+                aggregrated_data[data[1]][2].append(data[2][0])
+            else:
+                aggregrated_data[data[1]] = data
+
+    return aggregrated_data
