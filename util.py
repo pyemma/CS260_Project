@@ -143,7 +143,7 @@ def __update_bag(data=None, bag={}):
     return bag
 
 
-def one_hot_encoding(data=None, bag={}):
+def one_hot_encoding(data=None, bag={}, verbose=False):
     total_feature = len(bag)
     num_data = len(data)
     dim = len(data[0])
@@ -161,7 +161,7 @@ def one_hot_encoding(data=None, bag={}):
                     index = bag[elem]
                     sparse_data[j][index] = 1
         count = count + 1
-        if count % 1000 == 0:
+        if count % 1000 == 0 and verbose is True:
             print("Processed " + str(count))
 
     return sparse_data
@@ -181,3 +181,23 @@ def get_feature_bag(train_data=None,
     print("Total feature number in bag: " + str(total_feature))
 
     return bag_of_features
+
+
+def dump_result_to_file(filename='reuslt.csv', test_data=[], label=[], predict=[]):
+    type_map = {'3': 0, '4': 1, '5': 2, '6': 3, '7': 4, '8': 5, '9': 6, '12': 7, '14': 8, 
+                '15': 9, '18': 10, '19': 11, '20': 12, '21': 13, '22': 14, '23': 15, '24': 16, '25': 17, 
+                '26': 18, '27': 19, '28': 20, '29': 21, '30': 22, '31': 23, '32': 24, '33': 25, '34': 26,
+                '35': 27, '36': 28, '37': 29, '38': 30, '39': 31, '40': 32, '41': 33, '42': 34, '43': 35, '44': 36, '999': 37}
+
+    visit_number = [int(x0) for (x0, x1, x2) in test_data]
+    visit_number_with_predict = zip(visit_number, predict)
+    visit_number_with_predict.sort()
+
+    result = np.zeros([len(visit_number_with_predict), 39])
+    for i in range(0, len(visit_number_with_predict)):
+        tup = visit_number_with_predict[i]
+        result[i][0] = tup[0]
+        index = type_map[tup[1]] + 1
+        result[i][index] = 1
+
+    np.savetxt('result.csv', result, fmt='%d', delimiter=',')
