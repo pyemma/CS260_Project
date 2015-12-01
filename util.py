@@ -51,9 +51,56 @@ def analyze_data(filename=None, training=True):
     return dicts
 
 
+def get_top_upc_by_trip_type(data, label, top=20):
+    """
+    the data would be the result returned by group_by_visit_number,
+    group the upc and its count within each trip_type,
+    return top upc within each trip_type in the format of
+    {'trip_type': [upc1, upc2, upc3, ...]}
+    """
+    assert(len(data) == len(label))
+    group_trip_count = {}
+    for i in range(1, len(data)):
+        row = data[i]
+        trip_type = label[i]
+        if trip_type not in group_trip_count:
+            group_trip_count[trip_type] = {}
+        for (upc, count, desc, fine_line) in row[2]:
+            if upc not in group_trip_count[trip_type]:
+                group_trip_count[trip_type][upc] = 0
+            group_trip_count[trip_type][upc] = group_trip_count[trip_type][upc] + 1
+    group_trip = {}
+    for key in group_trip_count.keys():
+        group_trip[key] = map(
+            lambda (key, value): (value, key),
+            group_trip_count[key].items())
+        sorted(
+            group_trip[key],
+            key=lambda x: -x[0])
+        group_trip[key] = group_trip[key][0:top]
+        group_trip[key] = map(
+        lambda (value, key): key, group_trip[key])
+    return group_trip
+
+
+def convert_to_upc_feature_bag(group_trip, feature_bag={}):
+    """
+    take in output of get_top_upc_by_trip_type, and convert the data
+    into feature bag with format
+    {'upc': index}
+    """
+    feature_list = [elem for li in map(lambda (key, value): value, group_trip.items()) for elem in li]
+    for elem in feature_list:
+        if elem not in feature_bag:
+            feature_bag[elem] = len(feature_bag)
+    return feature_bag
+
+    
 def group_by_visit_number(filename=None, train=True):
-    """ data would be transformed to format like
-        (trip_type, (visit_number, weekday, [(upc, count, desc, fine_line)])) """
+    """
+    data would be transformed to format like
+    trip_type, (visit_number, weekday, [(upc, count, desc, fine_line)])
+    """
 
     if filename is None:
         raise ValueError("Filename should not be none")
@@ -184,8 +231,8 @@ def get_feature_bag(train_data=None,
 
 
 def dump_result_to_file(filename='reuslt.csv', test_data=[], label=[], predict=[]):
-    type_map = {'3': 0, '4': 1, '5': 2, '6': 3, '7': 4, '8': 5, '9': 6, '12': 7, '14': 8, 
-                '15': 9, '18': 10, '19': 11, '20': 12, '21': 13, '22': 14, '23': 15, '24': 16, '25': 17, 
+    type_map = {'3': 0, '4': 1, '5': 2, '6': 3, '7': 4, '8': 5, '9': 6, '12': 7, '14': 8,
+                '15': 9, '18': 10, '19': 11, '20': 12, '21': 13, '22': 14, '23': 15, '24': 16, '25': 17,
                 '26': 18, '27': 19, '28': 20, '29': 21, '30': 22, '31': 23, '32': 24, '33': 25, '34': 26,
                 '35': 27, '36': 28, '37': 29, '38': 30, '39': 31, '40': 32, '41': 33, '42': 34, '43': 35, '44': 36, '999': 37}
 
