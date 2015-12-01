@@ -161,9 +161,8 @@ def one_hot_encoding(data=None, bag={}):
                     index = bag[elem]
                     sparse_data[j][index] = 1
         count = count + 1
-        if count % 1000 == 0:
-            print("Processed " + str(count))
-
+            
+    print("Processed " + str(count))
     return sparse_data
 
 
