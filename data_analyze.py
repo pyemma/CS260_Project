@@ -1,4 +1,4 @@
-import preprocess
+import util
 
 # """ compare the common value between train data and test data """
 # fields = ['trip_type', 'visit_number', 'weekday',
@@ -15,12 +15,12 @@ import preprocess
 #     print("Common values in " + fields[index] + ": " + str(count))
 #     index = index + 1
 
-train_label, raw_train_data = preprocess.group_by_visit_number('data/train.csv')
-test_label, raw_test_data = preprocess.group_by_visit_number('data/test.csv', False)
+train_label, raw_train_data = util.group_by_visit_number('data/train.csv')
+test_label, raw_test_data = util.group_by_visit_number('data/test.csv', False)
 
-processed_train_data = preprocess.process_data(raw_train_data, ['s', 'd'])
-processed_test_data = preprocess.process_data(raw_test_data, ['s', 'd'])
+processed_train_data = util.process_data(raw_train_data, ['s', 'd'])
+processed_test_data = util.process_data(raw_test_data, ['s', 'd'])
 
-bag_of_features = preprocess.get_feature_bag(processed_train_data, processed_test_data, {})
+bag_of_features = util.get_feature_bag(processed_train_data, processed_test_data, {})
 
-train_data = preprocess.one_hot_encoding(processed_train_data, bag_of_features)
+train_data = util.one_hot_encoding(processed_train_data, bag_of_features)
