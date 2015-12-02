@@ -3,7 +3,7 @@ import util
 import numpy as np
 
 
-""" use logisitic regression to classify data,
+""" use logistic regression to classify data,
     this method does not support huge number of feature """
 
 # change to your data file path

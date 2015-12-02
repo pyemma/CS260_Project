@@ -51,7 +51,7 @@ def analyze_data(filename=None, training=True):
     return dicts
 
 
-def get_top_upc_by_trip_type(data, label, top=20):
+def get_top_upc_by_trip_type(data=None, label=None, top=20):
     """
     the data would be the result returned by group_by_visit_number,
     group the upc and its count within each trip_type,
@@ -95,7 +95,7 @@ def convert_to_upc_feature_bag(group_trip, feature_bag={}):
             feature_bag[elem] = len(feature_bag)
     return feature_bag
 
-    
+
 def group_by_visit_number(filename=None, train=True):
     """
     data would be transformed to format like
@@ -201,18 +201,43 @@ def one_hot_encoding(data=None, bag={}, verbose=False):
         row = data[j]
         for i in range(0, dim):
             if type(row[i]) is not list:
-                index = bag[row[i]]
-                sparse_data[j][index] = 1
+                if row[i] in bag:
+                    index = bag[row[i]]
+                    sparse_data[j][index] = 1
             else:
                 for elem in row[i]:
-                    index = bag[elem]
-                    sparse_data[j][index] = 1
+                    if elem in bag:
+                        print("hit")
+                        index = bag[elem]
+                        sparse_data[j][index] = 1
         count = count + 1
         if count % 1000 == 0 and verbose is True:
             print("Processed " + str(count))
 
     return sparse_data
 
+
+def one_hot_encoding_upc(data=None, bag={}, verbose=False):
+    """
+    one hot encode the upc data, different from one_hot_encode, the expact
+    input data are expected to be the raw input instead of the prcoessed input.
+    TODO: refactor the code in the furture
+    """
+    total_feature = len(bag)
+    num_data = len(data)
+    sparse_data = np.zeros([num_data, total_feature])
+    hit_count = 0
+
+    for j in range(0, num_data):
+        row = data[j]
+        for (upc, count, desc, fine_line) in row[2]:
+            if upc in bag:
+                hit_count = hit_count + 1
+                index = bag[upc]
+                sparse_data[j][index] = 1
+
+    print("Total hit count: " + str(hit_count))
+    return sparse_data
 
 def get_feature_bag(train_data=None,
                     test_data=None,
