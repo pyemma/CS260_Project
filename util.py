@@ -51,7 +51,11 @@ def analyze_data(filename=None, training=True):
     return dicts
 
 
-def get_top_upc_by_trip_type(data=None, label=None, top=20):
+def get_top_upc_or_fine_line_by_trip_type(
+    data=None,
+    label=None,
+    top=20,
+    f_type="upc"):
     """
     the data would be the result returned by group_by_visit_number,
     group the upc and its count within each trip_type,
@@ -66,9 +70,16 @@ def get_top_upc_by_trip_type(data=None, label=None, top=20):
         if trip_type not in group_trip_count:
             group_trip_count[trip_type] = {}
         for (upc, count, desc, fine_line) in row[2]:
-            if upc not in group_trip_count[trip_type]:
-                group_trip_count[trip_type][upc] = 0
-            group_trip_count[trip_type][upc] = group_trip_count[trip_type][upc] + 1
+            if f_type == "upc":
+                if upc not in group_trip_count[trip_type]:
+                    group_trip_count[trip_type][upc] = 0
+                group_trip_count[trip_type][upc] = group_trip_count[trip_type][upc] + 1
+            elif f_type == "fine_line":
+                if fine_line not in group_trip_count[trip_type]:
+                    group_trip_count[trip_type][fine_line] = 0
+                group_trip_count[trip_type][fine_line] = group_trip_count[trip_type][fine_line] + 1
+            else:
+                raise ValueError("not supported feature type")
     group_trip = {}
     for key in group_trip_count.keys():
         group_trip[key] = map(
@@ -83,11 +94,11 @@ def get_top_upc_by_trip_type(data=None, label=None, top=20):
     return group_trip
 
 
-def convert_to_upc_feature_bag(group_trip, feature_bag={}):
+def convert_to_feature_bag(group_trip, feature_bag={}):
     """
     take in output of get_top_upc_by_trip_type, and convert the data
     into feature bag with format
-    {'upc': index}
+    {'feature': index}
     """
     feature_list = [elem for li in map(lambda (key, value): value, group_trip.items()) for elem in li]
     for elem in feature_list:
@@ -217,7 +228,11 @@ def one_hot_encoding(data=None, bag={}, verbose=False):
     return sparse_data
 
 
-def one_hot_encoding_upc(data=None, bag={}, verbose=False):
+def one_hot_encoding_upc_or_fine_line(
+    data=None,
+    bag={},
+    f_type="upc",
+    verbose=False):
     """
     one hot encode the upc data, different from one_hot_encode, the expact
     input data are expected to be the raw input instead of the prcoessed input.
@@ -231,10 +246,18 @@ def one_hot_encoding_upc(data=None, bag={}, verbose=False):
     for j in range(0, num_data):
         row = data[j]
         for (upc, count, desc, fine_line) in row[2]:
-            if upc in bag:
-                hit_count = hit_count + 1
-                index = bag[upc]
-                sparse_data[j][index] = 1
+            if f_type == "upc":
+                if upc in bag:
+                    hit_count = hit_count + 1
+                    index = bag[upc]
+                    sparse_data[j][index] = 1
+            elif f_type == "fine_line":
+                if fine_line in bag:
+                    hit_count = hit_count + 1
+                    index = bag[fine_line]
+                    sparse_data[j][index] = 1
+            else:
+                raise ValueError("not supported feature type")
 
     print("Total hit count: " + str(hit_count))
     return sparse_data

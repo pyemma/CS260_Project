@@ -1,4 +1,5 @@
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 import util
 import numpy as np
 
@@ -10,22 +11,28 @@ use top upc within each trip type as feature
 train_data_file_path = 'data/train.csv'
 test_data_file_path = 'data/test.csv'
 
+"""
+logistic or randomforest
+"""
+classifier_type = 'randomforest'
+
 train_label, raw_train_data = util.group_by_visit_number(train_data_file_path)
 test_label, raw_test_data = util.group_by_visit_number(test_data_file_path, False)
 
-group_trip = util.get_top_upc_by_trip_type(
+group_trip = util.get_top_upc_or_fine_line_by_trip_type(
     data=raw_train_data,
     label=train_label,
     top=70)
-bag_of_feature = util.convert_to_upc_feature_bag(
+bag_of_feature = util.convert_to_feature_bag(
     group_trip=group_trip,
     feature_bag={})
 
 print("Feature number: " + str(len(bag_of_feature)))
 
-train_data = util.one_hot_encoding_upc(
+train_data = util.one_hot_encoding_upc_or_fine_line(
     data=raw_train_data,
     bag=bag_of_feature,
+    f_type="upc",
     verbose=False)
 
 count = 0
@@ -38,9 +45,10 @@ for i in range(0, len(train_data)):
 
 print("Train data with true element: " + str(count))
 
-test_data = util.one_hot_encoding_upc(
+test_data = util.one_hot_encoding_upc_or_fine_line(
     data=raw_test_data,
     bag=bag_of_feature,
+    f_type="upc",
     verbose=False)
 
 count = 0
@@ -61,7 +69,6 @@ use logistic regression to train the model
 train_label = np.array(train_label)
 masked_train_data = train_data[np.array(train_indexer)]
 masked_train_label = train_label[np.array(train_indexer)]
-print(str(sum(masked_train_data[0])))
 
 num_train_data = len(masked_train_data)
 num_fold = 5
@@ -76,6 +83,13 @@ for i in range(0, num_fold):
     train_mask[start_index:end_index] = np.zeros(step_size, dtype=bool)
     test_mask[start_index:end_index] = np.ones(step_size, dtype=bool)
 
+    classifier = None
+    if classifier_type == 'logistic':
+        classifier = LogisticRegression()
+    elif classifier_type == 'randomforest':
+        classifier = RandomForestClassifier()
+    else:
+        raise ValueError("classifier should be logistic regression or random forest")
     classifier = LogisticRegression()
     classifier.fit(masked_train_data[train_mask], masked_train_label[train_mask])
 
