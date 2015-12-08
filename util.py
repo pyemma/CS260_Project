@@ -201,7 +201,7 @@ def __update_bag(data=None, bag={}):
     return bag
 
 
-def one_hot_encoding(data=None, bag={}, verbose=False):
+def one_hot_encoding(data=None, bag={}, verbose=False, numerical=False):
     total_feature = len(bag)
     num_data = len(data)
     dim = len(data[0])
@@ -214,13 +214,18 @@ def one_hot_encoding(data=None, bag={}, verbose=False):
             if type(row[i]) is not list:
                 if row[i] in bag:
                     index = bag[row[i]]
-                    sparse_data[j][index] = 1
+                    if numerical is False:
+                        sparse_data[j][index] = 1
+                    else:
+                        sparse_data[j][index] = sparse_data[j][index] + 1
             else:
                 for elem in row[i]:
                     if elem in bag:
-                        print("hit")
                         index = bag[elem]
-                        sparse_data[j][index] = 1
+                        if numerical is False:
+                            sparse_data[j][index] = 1
+                        else:
+                            sparse_data[j][index] = sparse_data[j][index] + 1
         count = count + 1
         if count % 1000 == 0 and verbose is True:
             print("Processed " + str(count))
